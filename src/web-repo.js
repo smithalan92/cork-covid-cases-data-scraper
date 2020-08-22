@@ -1,12 +1,7 @@
 const { exec, spawn } = require('child_process');
 const path = require('path');
 
-const {
-  LOCAL_PROJECT_DIR,
-  SERVER_PROJECT_DIR,
-} = require('./constants');
-
-const BASE_DIRECTORY = process.env.IS_NODE_ON_SERVER ? SERVER_PROJECT_DIR : LOCAL_PROJECT_DIR;
+const BASE_DIRECTORY = process.env.COVID_CORK_PROJECT_DIR;
 
 /*
   Reset the web app to master && pull changes
