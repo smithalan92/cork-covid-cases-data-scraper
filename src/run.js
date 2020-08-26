@@ -106,8 +106,7 @@ async function run() {
     await webRepo.updateDataFile(DATA_FILE_PATH);
   } catch {
     console.log('Script failed...');
-    process.exit(1);
   }
 }
 
-module.exports = run();
+module.exports = run;

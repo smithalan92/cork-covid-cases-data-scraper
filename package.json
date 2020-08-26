@@ -2,7 +2,7 @@
   "name": "cork-covid-data-scraper",
   "version": "1.0.0",
   "description": "Gathers data for Cork covid cases",
-  "main": "src/index.js",
+  "main": "src/start.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "axios": "^0.20.0",
+    "cron": "^1.8.2",
     "fs-extra": "^9.0.1",
     "moment": "^2.27.0"
   }
