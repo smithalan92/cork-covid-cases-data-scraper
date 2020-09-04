@@ -101,6 +101,11 @@ async function run() {
       corkData: processedData,
     };
 
+    const yesterdaysCases = webRepo.getPreviousDaysCasesAndDeaths();
+
+    dataObject.changeInIrishCases = dataObject.totalIrishCases - yesterdaysCases.totalIrishCases;
+    dataObject.changeInIrishDeaths = dataObject.totalIrishDeaths - yesterdaysCases.totalIrishDeaths;
+
     await fs.writeJSON(DATA_FILE_PATH, dataObject, { spaces: 4 });
 
     await webRepo.updateDataFile(DATA_FILE_PATH);
