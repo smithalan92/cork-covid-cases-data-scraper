@@ -101,7 +101,7 @@ async function run() {
       corkData: processedData,
     };
 
-    const yesterdaysCases = webRepo.getPreviousDaysCasesAndDeaths();
+    const yesterdaysCases = await webRepo.getPreviousDaysCasesAndDeaths();
 
     dataObject.changeInIrishCases = dataObject.totalIrishCases - yesterdaysCases.totalIrishCases;
     dataObject.changeInIrishDeaths = dataObject.totalIrishDeaths - yesterdaysCases.totalIrishDeaths;
