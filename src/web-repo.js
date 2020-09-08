@@ -88,9 +88,7 @@ async function rebuildWebApp() {
   });
 }
 
-async function getPreviousDaysCasesAndDeaths() {
-  await updateProject();
-
+function getPreviousDaysCasesAndDeaths() {
   const dataPath = path.join(BASE_DIRECTORY, 'src', 'data.json');
 
   // eslint-disable-next-line global-require, import/no-dynamic-require

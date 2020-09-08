@@ -101,10 +101,23 @@ async function run() {
       corkData: processedData,
     };
 
-    const yesterdaysCases = await webRepo.getPreviousDaysCasesAndDeaths();
+    const yesterdaysCases = webRepo.getPreviousDaysCasesAndDeaths();
 
     dataObject.changeInIrishCases = dataObject.totalIrishCases - yesterdaysCases.totalIrishCases;
     dataObject.changeInIrishDeaths = dataObject.totalIrishDeaths - yesterdaysCases.totalIrishDeaths;
+
+    // Logging to figure out why case diff is sometimes off
+    console.log(`
+      --------------------------------------------\n
+      ### ${new Date().toISOString()} ###\n
+      Today Total Irish Cases: ${dataObject.totalIrishCases}\n
+      Today Total Irish Deaths: ${dataObject.totalIrishDeaths}\n
+      Yesterday Total Irish Cases: ${yesterdaysCases.totalIrishCases}\n
+      Yesterday Total Irish Deaths: ${yesterdaysCases.totalIrishDeaths}\n
+      Today Case Difference: ${dataObject.changeInIrishCases}\n
+      Today Death Difference: ${dataObject.changeInIrishDeaths}\n
+      ---------------------------------------------\n
+    `);
 
     await fs.writeJSON(DATA_FILE_PATH, dataObject, { spaces: 4 });
 
