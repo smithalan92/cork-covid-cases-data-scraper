@@ -1,5 +1,6 @@
 const { exec, spawn } = require('child_process');
 const path = require('path');
+const fs = require('fs');
 
 const BASE_DIRECTORY = process.env.COVID_CORK_PROJECT_DIR;
 
@@ -68,14 +69,6 @@ async function rebuildWebApp() {
   return new Promise((resolve, reject) => {
     const build = spawn('npm', ['run', 'build'], { cwd: BASE_DIRECTORY, detached: true });
 
-    build.stdout.on('data', (data) => {
-      console.log(`Info: ${data}`);
-    });
-
-    build.stderr.on('data', (data) => {
-      console.error(`Info: ${data}`);
-    });
-
     build.on('close', (code) => {
       if (code !== 0) {
         console.log('Web app rebuild failed: Code ', code);
@@ -90,9 +83,9 @@ async function rebuildWebApp() {
 
 function getPreviousDaysCasesAndDeaths() {
   const dataPath = path.join(BASE_DIRECTORY, 'src', 'data.json');
+  console.log('Old stats file directory: ', dataPath);
 
-  // eslint-disable-next-line global-require, import/no-dynamic-require
-  const data = require(dataPath);
+  const data = JSON.parse(fs.readFileSync(dataPath));
 
   return {
     totalIrishCases: data.totalIrishCases,
