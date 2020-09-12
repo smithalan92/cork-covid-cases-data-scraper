@@ -1,21 +1,14 @@
 const axios = require('axios');
 
 const {
-  TOTAL_CASE_DATA_URL,
-  TOTAL_DEATH_DATA_URL,
+  IRISH_DATA_URL,
   CORK_DATA_URL,
 } = require('./constants');
 
-async function getTotalIrishCases() {
-  const { data } = await axios.get(TOTAL_CASE_DATA_URL);
+async function getIrishData() {
+  const { data } = await axios.get(IRISH_DATA_URL);
 
-  return data.features[0].attributes.TotalConfirmedCovidCases_max;
-}
-
-async function getTotalIrishDeaths() {
-  const { data } = await axios.get(TOTAL_DEATH_DATA_URL);
-
-  return data.features[0].attributes.TotalCovidDeaths_max;
+  return data.features.map((r) => r.attributes);
 }
 
 async function getCorkCaseBreakdown() {
@@ -25,7 +18,6 @@ async function getCorkCaseBreakdown() {
 }
 
 module.exports = {
-  getTotalIrishCases,
-  getTotalIrishDeaths,
+  getIrishData,
   getCorkCaseBreakdown,
 };

@@ -81,18 +81,6 @@ async function rebuildWebApp() {
   });
 }
 
-function getPreviousDaysCasesAndDeaths() {
-  const dataPath = path.join(BASE_DIRECTORY, 'src', 'data.json');
-  console.log('Old stats file directory: ', dataPath);
-
-  const data = JSON.parse(fs.readFileSync(dataPath));
-
-  return {
-    totalIrishCases: data.totalIrishCases,
-    totalIrishDeaths: data.totalIrishDeaths,
-  };
-}
-
 async function updateDataFile(newDataFilePath) {
   await updateProject();
   await moveNewDataFile(newDataFilePath);
@@ -102,5 +90,4 @@ async function updateDataFile(newDataFilePath) {
 
 module.exports = {
   updateDataFile,
-  getPreviousDaysCasesAndDeaths,
 };

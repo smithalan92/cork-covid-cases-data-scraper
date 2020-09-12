@@ -9,19 +9,42 @@ const webRepo = require('./web-repo');
 const DATA_FILE_PATH = path.join(__dirname, 'data.json');
 
 /*
-  Get Irish confirmed case & Death counts
+  Get Irish confirmed case & Death counts and timeline of both
   Returns a {Promise} that resolves to an {Object}
 */
-async function getTotalIrishStatistics() {
+async function getIrishStatistics() {
   try {
-    const [totalIrishCases, totalIrishDeaths] = await Promise.all([
-      api.getTotalIrishCases(),
-      api.getTotalIrishDeaths(),
-    ]);
+    const irishData = await api.getIrishData();
 
-    console.log('Recieved Irish totals');
+    const sortedIrishData = irishData.sort((a, b) => new Date(a.Date) - new Date(b.Date));
 
-    return { totalIrishCases, totalIrishDeaths };
+    const latestRecord = sortedIrishData[sortedIrishData.length - 1];
+    const totalIrishCases = latestRecord.TotalConfirmedCovidCases;
+    const totalIrishDeaths = latestRecord.TotalCovidDeaths;
+
+    const irishCaseIncreaseSinceYesterday = latestRecord.ConfirmedCovidCases;
+    const irishDeathIncreaseSinceYesterday = latestRecord.ConfirmedCovidDeaths;
+
+    const processedIrishData = sortedIrishData.map((record) => ({
+      date: new Date(record.Date).toISOString(),
+      newCases: record.ConfirmedCovidCases,
+      newDeaths: record.ConfirmedCovidDeaths,
+    }));
+
+    const irishCasesInPast30Days = processedIrishData
+      .slice(processedIrishData.length - 30, processedIrishData.length)
+      .reduce((acc, current) => acc += current.newCases, 0);
+
+    console.log('Recieved and processed Irish data');
+
+    return {
+      totalIrishCases,
+      totalIrishDeaths,
+      irishCaseIncreaseSinceYesterday,
+      irishDeathIncreaseSinceYesterday,
+      processedIrishData,
+      irishCasesInPast30Days,
+    };
   } catch (error) {
     console.error(`Failed to get new irish stats: ${error}`);
     throw error;
@@ -84,40 +107,37 @@ async function getCorkStatistics() {
 async function run() {
   try {
     const [
-      { totalIrishCases, totalIrishDeaths },
-      { processedData, totalCasesInCork, totalCorkCasesInPast30Days }
+      {
+        totalIrishCases,
+        totalIrishDeaths,
+        irishCaseIncreaseSinceYesterday,
+        irishDeathIncreaseSinceYesterday,
+        processedIrishData,
+        irishCasesInPast30Days,
+      },
+      {
+        processedData,
+        totalCasesInCork,
+        totalCorkCasesInPast30Days,
+      },
     ] = await Promise.all([
-      getTotalIrishStatistics(),
+      getIrishStatistics(),
       getCorkStatistics(),
     ]);
 
     const dataObject = {
       totalIrishCases,
       totalIrishDeaths,
+      changeInIrishCases: irishCaseIncreaseSinceYesterday,
+      changeInIrishDeaths: irishDeathIncreaseSinceYesterday,
+      irishCasesInPast30Days,
       latestIrishDataDateTime: new Date().toISOString(),
       latestCorkDataDateTime: processedData[processedData.length - 1].date,
       totalCasesInCork,
       totalCorkCasesInPast30Days,
       corkData: processedData,
+      irishData: processedIrishData,
     };
-
-    const yesterdaysCases = webRepo.getPreviousDaysCasesAndDeaths();
-
-    dataObject.changeInIrishCases = dataObject.totalIrishCases - yesterdaysCases.totalIrishCases;
-    dataObject.changeInIrishDeaths = dataObject.totalIrishDeaths - yesterdaysCases.totalIrishDeaths;
-
-    // Logging to figure out why case diff is sometimes off
-    console.log(`
-      --------------------------------------------\n
-      ### ${new Date().toISOString()} ###\n
-      Today Total Irish Cases: ${dataObject.totalIrishCases}\n
-      Today Total Irish Deaths: ${dataObject.totalIrishDeaths}\n
-      Yesterday Total Irish Cases: ${yesterdaysCases.totalIrishCases}\n
-      Yesterday Total Irish Deaths: ${yesterdaysCases.totalIrishDeaths}\n
-      Today Case Difference: ${dataObject.changeInIrishCases}\n
-      Today Death Difference: ${dataObject.changeInIrishDeaths}\n
-      ---------------------------------------------\n
-    `);
 
     await fs.writeJSON(DATA_FILE_PATH, dataObject, { spaces: 4 });
 
