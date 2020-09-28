@@ -96,6 +96,24 @@ async function getCorkStatistics() {
   }
 }
 
+async function getCountyBreakdownStatistics() {
+  try {
+    const countyData = await api.getCountyBreakdownData();
+
+    const data = countyData.reduce((acc, { CountyName, value }) => {
+      acc[CountyName.toLowerCase()] = value;
+      return acc;
+    }, {});
+
+    console.log('Recieved and processed county data');
+
+    return data;
+  } catch (error) {
+    console.error(`Failed to get new county data: ${error}`);
+    throw error;
+  }
+}
+
 /*
   Runs the entire script.
   1. Gets all Irish/Cork data and processes it.
@@ -120,9 +138,11 @@ async function run() {
         totalCasesInCork,
         totalCorkCasesInPast30Days,
       },
+      countyData,
     ] = await Promise.all([
       getIrishStatistics(),
       getCorkStatistics(),
+      getCountyBreakdownStatistics(),
     ]);
 
     const dataObject = {
@@ -137,6 +157,7 @@ async function run() {
       totalCorkCasesInPast30Days,
       corkData: processedData,
       irishData: processedIrishData,
+      countyData,
     };
 
     await fs.writeJSON(DATA_FILE_PATH, dataObject, { spaces: 4 });
