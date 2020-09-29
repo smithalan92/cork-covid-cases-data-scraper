@@ -31,9 +31,29 @@ async function getIrishStatistics() {
       newDeaths: record.ConfirmedCovidDeaths,
     }));
 
-    const irishCasesInPast30Days = processedIrishData
-      .slice(processedIrishData.length - 30, processedIrishData.length)
-      .reduce((acc, current) => acc += current.newCases, 0);
+    const {
+      irishCasesInPast30Days,
+      irishCasesInPast14Days,
+      irishDeathsInPast30Days,
+      irishDeathsInPast14Days,
+    } = processedIrishData
+      .slice(processedIrishData.length - 30)
+      .reduce((acc, current, index) => {
+        acc.irishCasesInPast30Days += current.newCases;
+        acc.irishDeathsInPast30Days += current.newDeaths;
+
+        if (index >= 16) {
+          acc.irishCasesInPast14Days += current.newCases;
+          acc.irishDeathsInPast14Days += current.newDeaths;
+        }
+
+        return acc;
+      }, {
+        irishCasesInPast30Days: 0,
+        irishCasesInPast14Days: 0,
+        irishDeathsInPast30Days: 0,
+        irishDeathsInPast14Days: 0,
+      });
 
     console.log('Recieved and processed Irish data');
 
@@ -44,6 +64,9 @@ async function getIrishStatistics() {
       irishDeathIncreaseSinceYesterday,
       processedIrishData,
       irishCasesInPast30Days,
+      irishCasesInPast14Days,
+      irishDeathsInPast30Days,
+      irishDeathsInPast14Days,
     };
   } catch (error) {
     console.error(`Failed to get new irish stats: ${error}`);
@@ -83,13 +106,27 @@ async function getCorkStatistics() {
 
     const totalCasesInCork = corkData[corkData.length - 1].ConfirmedCovidCases;
 
-    const totalCorkCasesInPast30Days = processedData
-      .slice(processedData.length - 30, processedData.length)
-      .reduce((acc, current) => acc += current.newCases, 0);
+    const {
+      totalCorkCasesInPast30Days,
+      totalCorkCasesInPast14Days,
+    } = processedData
+      .slice(processedData.length - 30)
+      .reduce((acc, current, index) => {
+        acc.totalCorkCasesInPast30Days += current.newCases;
+
+        if (index >= 16) {
+          acc.totalCorkCasesInPast14Days += current.newCases;
+        }
+
+        return acc;
+      }, {
+        totalCorkCasesInPast30Days: 0,
+        totalCorkCasesInPast14Days: 0,
+      });
 
     console.log('Recieved and processed Cork data');
 
-    return { processedData, totalCasesInCork, totalCorkCasesInPast30Days };
+    return { processedData, totalCasesInCork, totalCorkCasesInPast30Days, totalCorkCasesInPast14Days };
   } catch (error) {
     console.error(`Failed to get new cork data: ${error}`);
     throw error;
@@ -132,11 +169,15 @@ async function run() {
         irishDeathIncreaseSinceYesterday,
         processedIrishData,
         irishCasesInPast30Days,
+        irishCasesInPast14Days,
+        irishDeathsInPast30Days,
+        irishDeathsInPast14Days,
       },
       {
         processedData,
         totalCasesInCork,
         totalCorkCasesInPast30Days,
+        totalCorkCasesInPast14Days,
       },
       countyData,
     ] = await Promise.all([
@@ -151,10 +192,14 @@ async function run() {
       changeInIrishCases: irishCaseIncreaseSinceYesterday,
       changeInIrishDeaths: irishDeathIncreaseSinceYesterday,
       irishCasesInPast30Days,
+      irishCasesInPast14Days,
+      irishDeathsInPast30Days,
+      irishDeathsInPast14Days,
       latestIrishDataDateTime: new Date().toISOString(),
       latestCorkDataDateTime: processedData[processedData.length - 1].date,
       totalCasesInCork,
       totalCorkCasesInPast30Days,
+      totalCorkCasesInPast14Days,
       corkData: processedData,
       irishData: processedIrishData,
       countyData,
