@@ -3,7 +3,7 @@ const axios = require('axios');
 const {
   IRISH_DATA_URL,
   CORK_DATA_URL,
-  COUNTY_SUMMARY_URL,
+  COUNTY_BREAKDOWN_URL,
 } = require('./constants');
 
 async function getIrishData() {
@@ -18,8 +18,9 @@ async function getCorkCaseBreakdown() {
   return data.features.map((r) => r.attributes);
 }
 
-async function getCountyBreakdownData() {
-  const { data } = await axios.get(COUNTY_SUMMARY_URL);
+async function getCountyBreakdownData(afterDate) {
+  const url = COUNTY_BREAKDOWN_URL.replace('TIMESTAMP_TO_FILTER_BY', afterDate);
+  const { data } = await axios.get(url);
 
   return data.features.map((r) => r.attributes);
 }

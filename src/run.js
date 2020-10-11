@@ -135,16 +135,59 @@ async function getCorkStatistics() {
 
 async function getCountyBreakdownStatistics() {
   try {
-    const countyData = await api.getCountyBreakdownData();
+    const afterDate = moment().subtract(21, 'days').format('YYYY-MM-DD');
+    const data = await api.getCountyBreakdownData(afterDate);
 
-    const data = countyData.reduce((acc, { CountyName, value }) => {
-      acc[CountyName.toLowerCase()] = value;
+    const countyData = data.reduce((acc, current) => {
+      const countyName = current.CountyName.toLowerCase();
+      if (!acc[countyName]) {
+        acc[countyName] = [];
+      }
+
+      acc[countyName].push({
+        cases: current.ConfirmedCovidCases,
+        date: new Date(current.TimeStamp),
+        population: current.PopulationCensus16,
+      });
+
       return acc;
     }, {});
 
+    const processedCountyData = {};
+
+    Object.keys(countyData).forEach((county) => {
+      const countyCaseData = countyData[county];
+
+      // Sort cases in DESC order
+      const sortedCountCaseDataDesc = countyCaseData.sort((a, b) => new Date(b.date) - new Date(a.date));
+      const numberOfRecords = sortedCountCaseDataDesc.length;
+
+      const dailyCaseData = sortedCountCaseDataDesc.map((record, index) => {
+        if (index === numberOfRecords - 1) return 0; // It dont matter we wont use it
+        const dailyCases = record.cases - sortedCountCaseDataDesc[index + 1].cases;
+        return dailyCases;
+      });
+
+      const totalCases14Days = dailyCaseData
+        .slice(0, 14)
+        .reduce((acc, current) => {
+        // eslint-disable-next-line no-param-reassign
+          acc += current;
+          return acc;
+        }, 0);
+
+      const incidenceRate14Days = Math.round((totalCases14Days * 100000) / sortedCountCaseDataDesc[0].population);
+
+      processedCountyData[county] = {
+        totalCases: sortedCountCaseDataDesc[0].cases,
+        totalCases14Days,
+        incidenceRate14Days,
+      };
+    });
+
     console.log('Recieved and processed county data');
 
-    return data;
+    return processedCountyData;
   } catch (error) {
     console.error(`Failed to get new county data: ${error}`);
     throw error;
