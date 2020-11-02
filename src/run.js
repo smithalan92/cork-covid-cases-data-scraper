@@ -136,7 +136,10 @@ async function getCorkStatistics() {
 async function getCountyBreakdownStatistics() {
   try {
     const afterDate = moment().subtract(21, 'days').format('YYYY-MM-DD');
+    console.log(afterDate);
     const data = await api.getCountyBreakdownData(afterDate);
+
+    console.log(data);
 
     const countyData = data.reduce((acc, current) => {
       const countyName = current.CountyName.toLowerCase();
@@ -154,6 +157,8 @@ async function getCountyBreakdownStatistics() {
     }, {});
 
     const processedCountyData = {};
+
+    console.log(Object.keys(countyData));
 
     Object.keys(countyData).forEach((county) => {
       const countyCaseData = countyData[county];
@@ -250,7 +255,7 @@ async function run() {
 
     await fs.writeJSON(DATA_FILE_PATH, dataObject, { spaces: 4 });
 
-    await webRepo.updateDataFile(DATA_FILE_PATH);
+    // await webRepo.updateDataFile(DATA_FILE_PATH);
   } catch {
     console.log('Script failed...');
   }
