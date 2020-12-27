@@ -89,7 +89,7 @@ async function getCorkStatistics() {
       .filter(({ TimeStamp }) => !moment(TimeStamp).isAfter(moment(), 'day'))
       .sort((a, b) => new Date(a.TimeStamp) - new Date(b.TimeStamp));
 
-    const processedData = corkData.map(({ ConfirmedCovidCases, TimeStamp }, index) => {
+    const processedCorkData = corkData.map(({ ConfirmedCovidCases, TimeStamp }, index) => {
       let casesSincePrevious = 0;
 
       if (index > 0) {
@@ -109,8 +109,8 @@ async function getCorkStatistics() {
     const {
       totalCorkCasesInPast30Days,
       totalCorkCasesInPast14Days,
-    } = processedData
-      .slice(processedData.length - 30)
+    } = processedCorkData
+      .slice(processedCorkData.length - 30)
       .reduce((acc, current, index) => {
         acc.totalCorkCasesInPast30Days += current.newCases;
 
@@ -126,7 +126,7 @@ async function getCorkStatistics() {
 
     console.log('Recieved and processed Cork data');
 
-    return { processedData, totalCasesInCork, totalCorkCasesInPast30Days, totalCorkCasesInPast14Days };
+    return { processedCorkData, totalCasesInCork, totalCorkCasesInPast30Days, totalCorkCasesInPast14Days };
   } catch (error) {
     console.error(`Failed to get new cork data: ${error}`);
     throw error;
@@ -136,10 +136,7 @@ async function getCorkStatistics() {
 async function getCountyBreakdownStatistics() {
   try {
     const afterDate = moment().subtract(21, 'days').format('YYYY-MM-DD');
-    console.log(afterDate);
     const data = await api.getCountyBreakdownData(afterDate);
-
-    console.log(data);
 
     const countyData = data.reduce((acc, current) => {
       const countyName = current.CountyName.toLowerCase();
@@ -157,8 +154,6 @@ async function getCountyBreakdownStatistics() {
     }, {});
 
     const processedCountyData = {};
-
-    console.log(Object.keys(countyData));
 
     Object.keys(countyData).forEach((county) => {
       const countyCaseData = countyData[county];
@@ -222,7 +217,7 @@ async function run() {
         irishDeathsInPast14Days,
       },
       {
-        processedData,
+        processedCorkData,
         totalCasesInCork,
         totalCorkCasesInPast30Days,
         totalCorkCasesInPast14Days,
@@ -243,12 +238,13 @@ async function run() {
       irishCasesInPast14Days,
       irishDeathsInPast30Days,
       irishDeathsInPast14Days,
-      latestIrishDataDateTime: new Date().toISOString(),
-      latestCorkDataDateTime: processedData[processedData.length - 1].date,
+      lastDataUpdateDateTime: new Date().toISOString(),
+      latestIrishDataDateTime: processedIrishData[processedIrishData.length - 1].date,
+      latestCorkDataDateTime: processedCorkData[processedCorkData.length - 1].date,
       totalCasesInCork,
       totalCorkCasesInPast30Days,
       totalCorkCasesInPast14Days,
-      corkData: processedData,
+      corkData: processedCorkData,
       irishData: processedIrishData,
       countyData,
     };
