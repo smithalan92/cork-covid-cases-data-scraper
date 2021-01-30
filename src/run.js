@@ -194,6 +194,15 @@ async function getCountyBreakdownStatistics() {
   }
 }
 
+function isLatestDataMostRecent(newData, currentData) {
+  const newLatestIrishDate = new Date(newData.latestIrishDataDateTime);
+  const currentLatestIrishDate = new Date(currentData.latestIrishDataDateTime);
+  const newLatestCorkDate = new Date(newData.latestCorkDataDateTime);
+  const currentLatestCorkDate = new Date(currentData.latestCorkDataDateTime);
+
+  return newLatestIrishDate > currentLatestIrishDate && newLatestCorkDate > currentLatestCorkDate;
+}
+
 /*
   Runs the entire script.
   1. Gets all Irish/Cork data and processes it.
@@ -229,7 +238,7 @@ async function run() {
       getCountyBreakdownStatistics(),
     ]);
 
-    const dataObject = {
+    let dataObject = {
       totalIrishCases,
       totalIrishDeaths,
       changeInIrishCases: irishCaseIncreaseSinceYesterday,
@@ -248,6 +257,13 @@ async function run() {
       irishData: processedIrishData,
       countyData,
     };
+
+    const currentAppData = webRepo.getLatestData();
+
+    if (!isLatestDataMostRecent(dataObject, currentAppData)) {
+      dataObject = currentAppData;
+      dataObject.lastDataUpdateDateTime = new Date().toISOString();
+    }
 
     await fs.writeJSON(DATA_FILE_PATH, dataObject, { spaces: 4 });
 

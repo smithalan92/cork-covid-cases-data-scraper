@@ -1,3 +1,5 @@
+/* eslint-disable global-require */
+/* eslint-disable import/no-dynamic-require */
 const { exec, spawn } = require('child_process');
 const path = require('path');
 const fs = require('fs');
@@ -88,6 +90,11 @@ async function updateDataFile(newDataFilePath) {
   await rebuildWebApp();
 }
 
+function getLatestData() {
+  return require(`${BASE_DIRECTORY}/src/data.json`);
+}
+
 module.exports = {
   updateDataFile,
+  getLatestData,
 };
