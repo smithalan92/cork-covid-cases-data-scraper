@@ -268,8 +268,9 @@ async function run() {
     await fs.writeJSON(DATA_FILE_PATH, dataObject, { spaces: 4 });
 
     await webRepo.updateDataFile(DATA_FILE_PATH);
-  } catch {
+  } catch (e) {
     console.log('Script failed...');
+    console.error(e);
   }
 }
 
