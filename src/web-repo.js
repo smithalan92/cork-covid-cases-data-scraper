@@ -2,9 +2,8 @@
 /* eslint-disable import/no-dynamic-require */
 const { exec, spawn } = require('child_process');
 const path = require('path');
-const fs = require('fs');
 
-const BASE_DIRECTORY = process.env.COVID_CORK_PROJECT_DIR;
+const BASE_DIRECTORY = process.env.IRELAND_COVID_PROJECT_DIR;
 
 /*
   Reset the web app to master && pull changes
