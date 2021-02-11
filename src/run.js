@@ -200,7 +200,19 @@ function isLatestDataMostRecent(newData, currentData) {
   const newLatestCorkDate = new Date(newData.latestCorkDataDateTime);
   const currentLatestCorkDate = new Date(currentData.latestCorkDataDateTime);
 
-  return newLatestIrishDate > currentLatestIrishDate && newLatestCorkDate > currentLatestCorkDate;
+  const isLatest = newLatestIrishDate > currentLatestIrishDate && newLatestCorkDate > currentLatestCorkDate;
+
+  if (!isLatest) {
+    console.log(`
+      Latest data is not the most recent:
+      New Irish - ${newLatestIrishDate}
+      Current Irish - ${currentLatestIrishDate}
+      New Cork - ${newLatestCorkDate}
+      Current Cork - ${currentLatestCorkDate}
+    `);
+  }
+
+  return isLatest;
 }
 
 /*
