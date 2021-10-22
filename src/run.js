@@ -1,12 +1,8 @@
 /* eslint-disable no-return-assign */
 /* eslint-disable no-param-reassign */
-const fs = require('fs-extra');
-const path = require('path');
 const moment = require('moment');
 const api = require('./api');
-const webRepo = require('./web-repo');
-
-const DATA_FILE_PATH = path.join(__dirname, 'data.json');
+const github = require('./github');
 
 /*
   Get Irish confirmed case & Death counts and timeline of both
@@ -270,16 +266,29 @@ async function run() {
       countyData,
     };
 
-    const currentAppData = webRepo.getLatestData();
+    const { data } = await github.request('GET /repos/{owner}/{repo}/contents/{path}', {
+      owner: 'smithalan92',
+      repo: 'ireland-covid',
+      path: 'src/data.json',
+    });
+
+    const { sha, content } = data;
+
+    const currentAppData = JSON.parse(Buffer.from(content, 'base64').toString());
 
     if (!isLatestDataMostRecent(dataObject, currentAppData)) {
       dataObject = currentAppData;
       dataObject.lastDataUpdateDateTime = new Date().toISOString();
     }
 
-    await fs.writeJSON(DATA_FILE_PATH, dataObject, { spaces: 4 });
-
-    await webRepo.updateDataFile(DATA_FILE_PATH);
+    await github.request('PUT /repos/{owner}/{repo}/contents/{path}', {
+      owner: 'smithalan92',
+      repo: 'ireland-covid',
+      path: 'src/data.json',
+      message: `Update data file ${new Date().toISOString()}`,
+      content: Buffer.from(JSON.stringify(dataObject, null, 4)).toString('base64'),
+      sha,
+    });
   } catch (e) {
     console.log('Script failed...');
     console.error(e);
