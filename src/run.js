@@ -4,6 +4,8 @@ const moment = require('moment');
 const api = require('./api');
 const github = require('./github');
 
+const { IRISH_POPULATION_2021 } = require('./constants');
+
 /*
   Get Irish confirmed case & Death counts and timeline of both
   Returns a {Promise} that resolves to an {Object}
@@ -190,6 +192,26 @@ async function getCountyBreakdownStatistics() {
   }
 }
 
+async function getOtherStatistics() {
+  const [hospitalData, vaccineData] = await Promise.all([
+    api.getHospitalStatistics(),
+    api.getVaccineStatistics(),
+  ]);
+
+  const { FullyVacc } = vaccineData;
+
+  const percentageFullyVaccinated = ((FullyVacc / IRISH_POPULATION_2021) * 100).toFixed(2);
+
+  console.log('Recieved and processed other data');
+
+  return {
+    totalPeopleVaccinated: FullyVacc,
+    percentagePeopleFullyVaccinated: percentageFullyVaccinated,
+    peopleInICU: hospitalData.icuCount,
+    peopleInHospital: hospitalData.hospitalCount,
+  };
+}
+
 function isLatestDataMostRecent(newData, currentData) {
   const newLatestIrishDate = new Date(newData.latestIrishDataDateTime);
   const currentLatestIrishDate = new Date(currentData.latestIrishDataDateTime);
@@ -240,10 +262,12 @@ async function run() {
         totalCorkCasesInPast14Days,
       },
       countyData,
+      otherData,
     ] = await Promise.all([
       getIrishStatistics(),
       getCorkStatistics(),
       getCountyBreakdownStatistics(),
+      getOtherStatistics(),
     ]);
 
     let dataObject = {
@@ -261,6 +285,7 @@ async function run() {
       totalCasesInCork,
       totalCorkCasesInPast30Days,
       totalCorkCasesInPast14Days,
+      ...otherData,
       corkData: processedCorkData,
       irishData: processedIrishData,
       countyData,
@@ -289,6 +314,7 @@ async function run() {
       content: Buffer.from(JSON.stringify(dataObject, null, 4)).toString('base64'),
       sha,
     });
+    console.log('Updated data in repo.');
   } catch (e) {
     console.log('Script failed...');
     console.error(e);
