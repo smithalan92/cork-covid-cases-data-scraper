@@ -218,7 +218,7 @@ function isLatestDataMostRecent(newData, currentData) {
   const newLatestCorkDate = new Date(newData.latestCorkDataDateTime);
   const currentLatestCorkDate = new Date(currentData.latestCorkDataDateTime);
 
-  const isLatest = newLatestIrishDate > currentLatestIrishDate && newLatestCorkDate > currentLatestCorkDate;
+  const isLatest = newLatestIrishDate > currentLatestIrishDate || newLatestCorkDate > currentLatestCorkDate;
 
   if (!isLatest) {
     console.log(`
