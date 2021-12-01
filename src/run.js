@@ -1,6 +1,7 @@
 /* eslint-disable no-return-assign */
 /* eslint-disable no-param-reassign */
 const moment = require('moment');
+const cloneDeep = require('lodash/cloneDeep');
 const api = require('./api');
 const github = require('./github');
 
@@ -270,6 +271,13 @@ async function run() {
       getOtherStatistics(),
     ]);
 
+    const {
+      totalPeopleVaccinated,
+      percentagePeopleFullyVaccinated,
+      peopleInICU,
+      peopleInHospital,
+    } = otherData;
+
     let dataObject = {
       totalIrishCases,
       totalIrishDeaths,
@@ -285,7 +293,8 @@ async function run() {
       totalCasesInCork,
       totalCorkCasesInPast30Days,
       totalCorkCasesInPast14Days,
-      ...otherData,
+      totalPeopleVaccinated,
+      percentagePeopleFullyVaccinated,
       corkData: processedCorkData,
       irishData: processedIrishData,
       countyData,
@@ -300,6 +309,14 @@ async function run() {
     const { sha, content } = data;
 
     const currentAppData = JSON.parse(Buffer.from(content, 'base64').toString());
+
+    const hospitalData = cloneDeep(currentAppData.hospitalData);
+
+    hospitalData.push({
+      date: new Date().toISOString(),
+      peopleInHospital,
+      peopleInICU,
+    });
 
     if (!isLatestDataMostRecent(dataObject, currentAppData)) {
       dataObject = currentAppData;
