@@ -318,10 +318,12 @@ async function run() {
       peopleInICU,
     });
 
-    if (!isLatestDataMostRecent(dataObject, currentAppData)) {
-      dataObject = currentAppData;
-      dataObject.lastDataUpdateDateTime = new Date().toISOString();
-    }
+    dataObject.hospitalData = hospitalData;
+
+    // if (!isLatestDataMostRecent(dataObject, currentAppData)) {
+    //   dataObject = currentAppData;
+    //   dataObject.lastDataUpdateDateTime = new Date().toISOString();
+    // }
 
     await github.request('PUT /repos/{owner}/{repo}/contents/{path}', {
       owner: 'smithalan92',
